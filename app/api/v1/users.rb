@@ -13,8 +13,10 @@ class Api::V1::Users < Grape::API
             requires :email ,type: String
             requires :password ,type: String
             requires :password_confirmation, type: String
+            requires :role, type: String
         end
         post "add_user" do
+            puts params
             User.create!(params)
         end
         

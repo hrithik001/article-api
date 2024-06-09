@@ -28,6 +28,8 @@ gem "jbuilder"
 
 gem "jwt"
 
+gem 'kaminari'
+
 gem "grape"
 
 gem "grape-entity"

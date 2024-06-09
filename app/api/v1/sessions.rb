@@ -9,11 +9,13 @@ class Api::V1::Sessions < Grape::API
       end
       post "/login" do
         user = User.find_by(email: params[:email])
-        Current.user = user
+        
         if user&.authenticate(params[:password])
-          token = JWT.encode({ user_id: user.id, exp: 24.hours.from_now.to_i }, "123456789", 'HS256')
-          cookies[:user_session] = { value: token, httponly: true, secure: true }
-          { message: 'Logged in successfully', user: user.as_json(only: [:id, :email, :name]) }
+          
+          payload = { user_id: user.id, exp: 24.hours.from_now.to_i }
+          token = JWT.encode(payload, "123456789", 'HS256')
+         
+          { token: token, user: { id: user.id, email: user.email,role: user.role}}
         else
           error!('Invalid email or password', 401)
         end
@@ -21,14 +23,17 @@ class Api::V1::Sessions < Grape::API
 
       desc "Logout a user"
       delete "/logout" do
-        cookies.delete(:user_session)
+        
         { message: 'Logged out successfully' }
       end
 
       desc "Get current user"
       get "/current_user" do
         authenticate!
-        present current_user, with: Entities::User
+       {
+        user: Current.user,
+        message: "User Logged Out Succcessfully"
+       }
       end
 
     end
