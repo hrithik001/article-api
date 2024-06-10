@@ -25,4 +25,8 @@ module AuthHelpers
       error!('Unauthorized - No token provided', 401)
     end
   end 
+
+  def current_user
+    Current.user
+  end
 end

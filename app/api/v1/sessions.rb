@@ -10,7 +10,7 @@ class Api::V1::Sessions < Grape::API
       post "/login" do
         user = User.find_by(email: params[:email])
         
-        if user&.authenticate(params[:password])
+        if user&.authenticate(params[:password]) && user.role == params[:role]
           
           payload = { user_id: user.id, exp: 24.hours.from_now.to_i }
           token = JWT.encode(payload, "123456789", 'HS256')

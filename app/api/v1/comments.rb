@@ -32,7 +32,8 @@ class Api::V1::Comments < Grape::API
               user: Current.user,
               parent_id: params[:parent_id]
             )
-            { comment: comment }
+            
+
           end
   
           desc "Delete a comment"
@@ -41,8 +42,13 @@ class Api::V1::Comments < Grape::API
           end
           delete ':id' do
             comment = Comment.find(params[:id])
-            error!('Forbidden', 403) unless comment.user == Current.user || Current.user.admin?
-            comment.destroy
+
+            if comment.user_can_delete?
+              comment.destroy
+              { message: "comment deleted successfully"}
+            else
+              error!('You are not authorized to delete this comment', 403)
+            end
           end
   
           desc "Edit a comment"
@@ -52,8 +58,11 @@ class Api::V1::Comments < Grape::API
           end
           patch ':id' do
             comment = Comment.find(params[:id])
-            error!('Forbidden', 403) unless comment.user == Current.user 
-            comment.update!(content: params[:content])
+            if comment.update(content: params[:content])
+              { comment: comment }
+            else
+              error!(comment.errors.full_messages.to_json, 422)
+            end
           end
   
           desc "Get replies for a comment"

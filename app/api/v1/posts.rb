@@ -47,8 +47,14 @@ class Api::V1::Posts < Grape::API
         end
         delete "post/:id" do 
             post = Post.find(params[:id])
-          error!('Forbidden', 403) unless post.user == Current.user || Current.user.admin?
-          post.destroy
+            if post.can_user_destory? && post.destroy
+                
+                { message: 'posts destroyed successfully!!' }
+            else
+                error!(post.errors.full_messages.to_json, 403)
+            end
+
+            
         end
 
         # edit the post
@@ -62,26 +68,32 @@ class Api::V1::Posts < Grape::API
         end
         patch "post/edit/:id" do 
             post = Post.find(params[:id])
-            error!('Forbidden', 403) unless post.user == Current.user 
-            post.update!(
-              post_title: params[:post_title],
-              post_content: params[:post_content]
-            )
+            if post.can_user_edit && post.update(post_title: params[:post_title], post_content: params[:post_content])
+                { post: post }
+            else
+                error!(post.errors.full_messages.to_json, 403)
+            end
         end
 
         # creating the new posts
         desc "Create a new posts"
         params do   
-            requires :user_id, type: Integer
+            # requires :user_id, type: Integer
             requires :post_title, type: String 
             requires :post_content, type: String 
         end
         post "create_post" do
-            Post.create!(
+            post = Post.new(
                 post_title: params[:post_title],
                 post_content: params[:post_content],
                 user: Current.user
               )
+              if post.save
+                { post: post }
+              else
+                error!(post.errors.full_messages.to_json, 422)
+                
+              end
         end
 
 
