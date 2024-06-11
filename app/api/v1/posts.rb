@@ -10,6 +10,32 @@ class Api::V1::Posts < Grape::API
         before do
             authenticate!
         end
+
+        desc "searching for posts"
+        params do
+            optional :page, type: Integer, default: 1, desc: "Page number"
+            optional :per_page, type: Integer, default: 10, desc: "Posts per page"
+            requires :query, type: String, desc: "Search query"
+        end
+        get "/search" do
+            query = params[:query]
+            page = params[:page] || 1
+            per_page = params[:per_page] || Kaminari.config.default_per_page
+
+            posts = Post.search(query).page(page).per(per_page)
+
+            if posts.empty?
+                { message: 'No posts found' }
+              else
+                {
+                  posts: posts,
+                  page: posts.current_page,
+                  total_pages: posts.total_pages,
+                  total_count: posts.total_count,
+                  per_page: posts.limit_value
+                }
+              end
+          end
       
        
         desc "Get all posts with pagination"

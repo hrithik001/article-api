@@ -24,6 +24,9 @@ class Post < ApplicationRecord
             errors.add(:base, 'You are not authorized to edit posts.')
           end
     end 
+    def self.search(query)
+      where("post_title LIKE ? OR post_content LIKE ?", "%#{query}%", "%#{query}%").select(:post_title, :post_content,:id)
+    end
    
         
 end
