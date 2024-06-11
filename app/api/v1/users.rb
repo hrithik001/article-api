@@ -1,5 +1,10 @@
 class Api::V1::Users < Grape::API
     resources :users do
+        helpers AuthHelpers
+
+        before do
+          authenticate!
+        end
 
         # get all user
         desc "get all Users"
@@ -16,8 +21,21 @@ class Api::V1::Users < Grape::API
             requires :role, type: String
         end
         post "add_user" do
-            puts params
-            User.create!(params)
+            
+            user = User.new( 
+                email: params[:email],
+                password: params[:password],
+                password_confirmation: params[:password_confirmation],
+                role: params[:role] 
+                )
+            if user.save
+                user
+            else
+                error!(user.errors.full_messages.to_json, 422)
+            end
+            rescue ActiveRecord::RecordInvalid => e
+                error!(e.message, 422)
+        
         end
         
         # edit a user

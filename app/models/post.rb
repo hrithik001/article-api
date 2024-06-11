@@ -8,6 +8,11 @@ class Post < ApplicationRecord
     validate :can_user_edit ,on: :update
     validate :can_user_destory?
 
+    def can_user_destory?
+      unless user == Current.user || Current.user.role == 'admin'
+        errors.add(:base, 'You are not authorized to delete this post')
+      end
+  end
     private
     def can_user_create
         if Current.user.role == 'user'
@@ -19,10 +24,6 @@ class Post < ApplicationRecord
             errors.add(:base, 'You are not authorized to edit posts.')
           end
     end 
-    def can_user_destory?
-        unless user == Current.user || Current.user.role == 'admin'
-          errors.add(:base, 'You are not authorized to delete this post')
-        end
-    end
+   
         
 end
