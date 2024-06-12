@@ -7,9 +7,5 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
-User.create!(
-  email: 'admin@example.com',
-  password: '123456', # Use a strong password in production
-  password_confirmation: '123456', # Make sure it matches the password
-  role: 'admin'
-)
+# db/seeds.rb
+# Tag.create([{ name: 'Technology' }, { name: 'Health' }, { name: 'Lifestyle' }])

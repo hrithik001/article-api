@@ -23,14 +23,14 @@ class Api::V1::Comments < Grape::API
           desc "Create a comment for a post"
           params do
             requires :content, type: String
-            optional :parent_id, type: Integer
+           
           end
           post do
             post = Post.find(params[:post_id])
             comment = post.comments.create!(
               content: params[:content],
               user: Current.user,
-              parent_id: params[:parent_id]
+              
             )
             
 
@@ -79,6 +79,25 @@ class Api::V1::Comments < Grape::API
               { comment: comment, replies: replies }
             end
           end
+
+          desc "Create a reply to a comment"
+          params do
+            requires :id, type: Integer
+            requires :content, type: String
+          end
+
+          post ':id/replies' do
+            comment = Comment.find(params[:id])
+            reply = comment.replies.create!(
+              content: params[:content],
+              user: Current.user,
+              post_id: comment.post_id,
+              parent_id: comment.id
+            )
+
+            { reply: reply }
+          end
+
         end
       end
     end

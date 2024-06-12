@@ -11,31 +11,6 @@ class Api::V1::Posts < Grape::API
             authenticate!
         end
 
-        desc "searching for posts"
-        params do
-            optional :page, type: Integer, default: 1, desc: "Page number"
-            optional :per_page, type: Integer, default: 10, desc: "Posts per page"
-            requires :query, type: String, desc: "Search query"
-        end
-        get "/search" do
-            query = params[:query]
-            page = params[:page] || 1
-            per_page = params[:per_page] || Kaminari.config.default_per_page
-
-            posts = Post.search(query).page(page).per(per_page)
-
-            if posts.empty?
-                { message: 'No posts found' }
-              else
-                {
-                  posts: posts,
-                  page: posts.current_page,
-                  total_pages: posts.total_pages,
-                  total_count: posts.total_count,
-                  per_page: posts.limit_value
-                }
-              end
-          end
       
        
         desc "Get all posts with pagination"
@@ -43,16 +18,56 @@ class Api::V1::Posts < Grape::API
         params do
             optional :page, type: Integer, default: 1, desc: "Page number"
             optional :per_page, type: Integer, default: 2, desc: "Posts per page"
+            optional :query, type: String, desc: "Search query"
+            optional :tag, type: String, desc: "Tag to filter posts"
         end
         get do
             page = params[:page] || 1
             per_page = params[:per_page] || Kaminari.config.default_per_page
+            query = params[:query] ? "%#{params[:query]}%" : nil
+            tag_name = params[:tag]
 
-            posts = Post.select(:id, :post_title, :post_content)
-                        .page(page)
-                        .per(per_page)
 
-            { posts: posts, page: page, per_page: per_page, total_pages: posts.total_pages }
+            # if query.present?
+            #     posts = Post.where('post_title  LIKE ? OR post_content LIKE ?',query, query )
+            # end
+
+            # if tag_name.present?
+            #     posts = Tag.where('name  LIKE ? OR id LIKE ?',tag_name, tag_name.to_i )
+            #     present posts
+            # end
+
+            
+
+            posts = if tag_name.present?
+                        tags = Tag.find_by(name: tag_name)
+                        puts "tags form here #{tags}"
+                        tags.posts
+                    elsif params[:query].present?
+                        Post.where('post_title LIKE ? OR post_content LIKE ?', "%#{params[:query]}%", "%#{params[:query]}%")
+                    else
+                        Post.all
+                    end.page(page).per(per_page)
+            if posts.any?
+            {
+                post: posts.includes(:tags).map do |post|
+                    {
+                      id: post.id,
+                      post_title: post.post_title,
+                      post_content: post.post_content,
+                      tags: post.tags.map(&:name), 
+                      user_id: post.user_id,
+                      created_at: post.created_at,
+                      updated_at: post.updated_at
+                    }
+                  end,
+                page: page,
+                per_page: per_page,
+                total_pages: posts.total_pages
+            }
+            else
+            { message: "No posts found" }
+            end
         end
 
         # one post
@@ -107,6 +122,7 @@ class Api::V1::Posts < Grape::API
             # requires :user_id, type: Integer
             requires :post_title, type: String 
             requires :post_content, type: String 
+            requires :tag_names, type: Array[String]
         end
         post "create_post" do
             post = Post.new(
@@ -115,6 +131,10 @@ class Api::V1::Posts < Grape::API
                 user: Current.user
               )
               if post.save
+                params[:tag_names].each do |tag_name|
+                    tag = Tag.find_or_create_by(name: tag_name) 
+                    post.tags << tag
+                end
                 { post: post }
               else
                 error!(post.errors.full_messages.to_json, 422)

@@ -1,7 +1,10 @@
 class Post < ApplicationRecord
     belongs_to :user
     has_many :comments, dependent: :destroy
-  
+    
+    has_many :posts_tags, dependent: :destroy
+    has_many :tags, through: :posts_tags
+
     validates :post_title, presence: true
     validates :post_content, presence: true
     validate :can_user_create ,on: :create
@@ -24,9 +27,7 @@ class Post < ApplicationRecord
             errors.add(:base, 'You are not authorized to edit posts.')
           end
     end 
-    def self.search(query)
-      where("post_title LIKE ? OR post_content LIKE ?", "%#{query}%", "%#{query}%").select(:post_title, :post_content,:id)
-    end
+   
    
         
 end
