@@ -6,8 +6,13 @@ class User < ApplicationRecord
     before_save :ensure_admin_privilege
     has_secure_password
     
+    # comment
     has_many :posts, dependent: :destroy
     has_many :comments, dependent: :destroy
+
+    # reactions
+    has_many :reactions, dependent: :destroy
+    has_many :posts, through: :reactions
 
     private
 

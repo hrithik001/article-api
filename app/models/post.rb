@@ -2,8 +2,14 @@ class Post < ApplicationRecord
     belongs_to :user
     has_many :comments, dependent: :destroy
     
+
+    # tags
     has_many :posts_tags, dependent: :destroy
     has_many :tags, through: :posts_tags
+    
+    # rection 
+    has_many :reactions, dependent: :destroy
+    has_many :users, through: :reactions
 
     validates :post_title, presence: true
     validates :post_content, presence: true

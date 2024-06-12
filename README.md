@@ -23,6 +23,6 @@ Things you may want to cover:
 
 * ...
 <!-- login should not be able to logged in again if already logged in  
-    category like filter basically
+    
     reactions for that posts
 -->

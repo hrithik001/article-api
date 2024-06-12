@@ -50,12 +50,13 @@ class Api::V1::Posts < Grape::API
                     end.page(page).per(per_page)
             if posts.any?
             {
-                post: posts.includes(:tags).map do |post|
+                post: posts.includes(:tags,:reactions).map do |post|
                     {
                       id: post.id,
                       post_title: post.post_title,
                       post_content: post.post_content,
                       tags: post.tags.map(&:name), 
+                      reactions: post.reactions.select(:reaction_type).map(&:reaction_type),
                       user_id: post.user_id,
                       created_at: post.created_at,
                       updated_at: post.updated_at
@@ -142,6 +143,6 @@ class Api::V1::Posts < Grape::API
               end
         end
 
-
+        
     end
 end

@@ -8,4 +8,5 @@ class Api < Grape::API
     mount Api::V1::Users
     mount Api::V1::Sessions
     mount Api::V1::Comments
+    mount Api::V1::Reactions
 end
