@@ -32,7 +32,7 @@ class Api::V1::Comments < Grape::API
               user: Current.user,
               
             )
-            
+            present :comment, comment, with: Entities::Comment
 
           end
   
@@ -58,8 +58,8 @@ class Api::V1::Comments < Grape::API
           end
           patch ':id' do
             comment = Comment.find(params[:id])
-            if comment.update(content: params[:content])
-              { comment: comment }
+            if comment.user_can_edit?(Current.user) && comment.update(content: params[:content])
+              present :comment, comment, with: Entities::Comment
             else
               error!(comment.errors.full_messages.to_json, 422)
             end
@@ -76,8 +76,10 @@ class Api::V1::Comments < Grape::API
             if replies.empty?
               { comment: comment, message: 'No replies for this comment' }
             else
-              { comment: comment, replies: replies }
+              present :comment, comment, with: Entities::Comment
+              present :replies, replies, with: Entities::Comment
             end
+          
           end
 
           desc "Create a reply to a comment"
@@ -95,7 +97,7 @@ class Api::V1::Comments < Grape::API
               parent_id: comment.id
             )
 
-            { reply: reply }
+            present :reply, reply, with: Entities::Comment
           end
 
         end

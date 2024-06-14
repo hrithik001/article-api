@@ -11,14 +11,15 @@ class Api::V1::Reactions < Grape::API
                 desc "Get reactions for a post"
                 get do
                     post = Post.find(params[:post_id])
-                    reactions = post.reactions.select(:reaction_type).map(&:reaction_type)
+                    reaction = post.reactions.select(:reaction_type).map(&:reaction_type)
                     
-                    if reactions.present?
+                    if reaction.present?
                         
-                        {
-                            post: post,
-                            reaction: reactions
-                        }
+                        
+                            present :post, post, with: Entities::PostInfo
+                            
+                            
+                        
                     else
                         {
                             post: post,
@@ -37,17 +38,14 @@ class Api::V1::Reactions < Grape::API
                     reaction = post.reactions.find_or_initialize_by(user: user)
 
                     if reaction.persisted?
-                        if reaction.reaction_type == params[:reaction_type]
-                            reaction.destroy
-                            { message: "Reaction removed" }
-                        else
+                        
                             reaction.update!(reaction_type: params[:reaction_type])
-                            { message: "Reaction updated" }
-                        end
+                            present :reaction, reaction, with: Entities::Reaction
+                       
                     else
                         reaction.reaction_type = params[:reaction_type]
                         reaction.save!
-                        { message: "Reaction created" }
+                        present :reaction, reaction, with: Entities::Reaction
                     end
                 end
 

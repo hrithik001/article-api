@@ -24,8 +24,6 @@ Things you may want to cover:
 * ...
 <!-- login should not be able to logged in again if already logged in  
     notification system
-    logic should be keep in model level
-    entity's response for rest of the api endpoint
-    should have delete endpoint for reaction
+    
     
 -->
