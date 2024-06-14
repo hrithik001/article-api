@@ -14,6 +14,9 @@ class User < ApplicationRecord
     has_many :reactions, dependent: :destroy
     has_many :posts, through: :reactions
 
+    #reports
+    has_many :reports, dependent: :destroy
+
     private
 
     def ensure_admin_privilege

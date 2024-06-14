@@ -11,6 +11,9 @@ class Post < ApplicationRecord
     has_many :reactions, dependent: :destroy
     has_many :users, through: :reactions
 
+    #reports
+    has_many :reports, dependent: :destroy
+
     validates :post_title, presence: true
     validates :post_content, presence: true
     validate :can_user_create ,on: :create

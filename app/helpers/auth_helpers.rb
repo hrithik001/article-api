@@ -33,4 +33,9 @@ module AuthHelpers
   def current_user
     Current.user
   end
+
+  def authenticate_admin!
+    
+    error!('403 Forbidden', 403) unless Current.user.role == 'admin'
+  end
 end

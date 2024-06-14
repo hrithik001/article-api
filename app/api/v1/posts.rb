@@ -27,18 +27,6 @@ class Api::V1::Posts < Grape::API
             query = params[:query] ? "%#{params[:query]}%" : nil
             tag_name = params[:tag]
 
-
-            # if query.present?
-            #     posts = Post.where('post_title  LIKE ? OR post_content LIKE ?',query, query )
-            # end
-
-            # if tag_name.present?
-            #     posts = Tag.where('name  LIKE ? OR id LIKE ?',tag_name, tag_name.to_i )
-            #     present posts
-            # end
-
-            
-
             posts = if tag_name.present?
                         tags = Tag.find_by(name: tag_name)
                         puts "tags form here #{tags}"
@@ -70,6 +58,37 @@ class Api::V1::Posts < Grape::API
             { message: "No posts found" }
             end
         end
+        #my posts 
+        desc "get my posts"
+        get 'myposts' do
+            authenticate!
+            user = Current.user
+            puts "current user ==> #{user.inspect}"
+      
+            if %w[admin author].include?(user.role)
+            #   posts = user.posts.page(params[:page]).per(params[:per_page])
+              posts = Post.where(user_id: user.id)
+      
+              if posts.any?
+                {
+                  posts: posts.includes(:tags,:reactions).map do |post|
+                    {
+                      id: post.id,
+                      post_title: post.post_title,
+                      post_content: post.post_content,
+                      tags: post.tags.map(&:name),
+                      reactions: post.reactions.map(&:reaction_type)
+                    }
+                  end,
+                 
+                }
+              else
+                { message: "No posts found for the user" }
+              end
+            else
+              error!({ error: 'You are not authorized to view this content' }, 403)
+            end
+          end
 
         # one post
         desc "get one post"
@@ -142,6 +161,26 @@ class Api::V1::Posts < Grape::API
                 
               end
         end
+
+        # report a post
+
+        desc "Report a post"
+        params do
+          requires :post_id, type: Integer, desc: "ID of the post to report"
+          requires :reason, type: String, desc: "Reason for reporting the post"
+        end
+        post ':post_id/report' do
+          post = Post.find_by(id: params[:post_id])
+          puts "posts => #{post}"
+          report = Current.user.reports.new(post: post, reason: params[:reason])
+
+          if report.save
+            { message: "Post reported successfully", report: report }
+          else
+            error!(report.errors.full_messages, 422)
+          end
+        end
+
 
         
     end
